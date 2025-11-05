@@ -1,0 +1,48 @@
+<?php
+// Incluir configuración si no está incluida
+if (!defined('BASE_URL')) {
+    require_once __DIR__ . '/../config/config.php';
+}
+
+// Determinar la ruta relativa para los assets
+$depth = substr_count($_SERVER['SCRIPT_NAME'], '/') - substr_count(BASE_URL, '/') - 1;
+$relative_path = str_repeat('../', $depth);
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo isset($titulo_pagina) ? $titulo_pagina . ' - ' : ''; ?>Sistema Biblioteca</title>
+    <link rel="stylesheet" href="<?php echo $relative_path; ?>assets/css/style.css">
+    <link rel="stylesheet" href="<?php echo $relative_path; ?>assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <i class="fas fa-book"></i>
+                <span>Sistema Biblioteca</span>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="<?php echo BASE_URL; ?>/index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' && dirname($_SERVER['PHP_SELF']) == dirname(BASE_URL) ? 'active' : ''; ?>">
+                    <i class="fas fa-home"></i> Inicio
+                </a></li>
+                <li><a href="<?php echo BASE_URL; ?>/libros/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/libros/') !== false ? 'active' : ''; ?>">
+                    <i class="fas fa-book-open"></i> Libros
+                </a></li>
+                <li><a href="<?php echo BASE_URL; ?>/usuarios/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/usuarios/') !== false ? 'active' : ''; ?>">
+                    <i class="fas fa-users"></i> Usuarios
+                </a></li>
+                <li><a href="<?php echo BASE_URL; ?>/prestamos/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/prestamos/') !== false ? 'active' : ''; ?>">
+                    <i class="fas fa-exchange-alt"></i> Préstamos
+                </a></li>
+            </ul>
+            <div class="navbar-user">
+                <i class="fas fa-user-circle"></i>
+                <span>Bibliotecario</span>
+            </div>
+        </div>
+    </nav>
+    <main class="main-content">
