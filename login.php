@@ -1,3 +1,9 @@
+<?php 
+require 'token_confirmar.php';
+require 'obtenerBaseDeDatos.php';
+redirigir(comprobarToken(ObtenerDB()));
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -57,29 +63,74 @@
         font-size: 0.9em;
         color: #666;
     }
+
+    /* 🟥 Recuadro del mensaje de error */
+    #MensajeDeError {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #fee2e2;
+        color: #b91c1c;
+        border: 1px solid #fca5a5;
+        border-radius: 8px;
+        padding: 12px 20px;
+        min-width: 250px;
+        text-align: center;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        display: none;/* Oculto hasta que haya error */
+        z-index: 1;
+        animation: aparecer 0.3s ease-in-out;
+    }
+
+    @keyframes aparecer {
+        from { opacity: 0; transform: translate(-50%, 20px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
 </style>
 </head>
 <body>
 
 <div class="login-container">
     <h2>Iniciar Sesión</h2>
-    <form action="login.php" method="post" id="FormularioDeSesion">
+    <form action="login_validar.php" method="post" id="FormularioDeSesion">
         <input type="text" name="usuario" placeholder="Usuario" required>
         <input type="password" name="contraseña" placeholder="Contraseña" required>
         <input type="submit" value="Entrar">
     </form>
 </div>
 
+<div id="MensajeDeError">Texto:</div>
+
 <script>
-    document.getElementById("FormularioDeSesion").addEventListener("submit", function(event)) {
+    document.getElementById("FormularioDeSesion").addEventListener("submit", function(event) {
+        event.preventDefault();
 
         let formData = new FormData(this);
         fetch("./login_validar.php", {
             method: "POST",
             body: formData
         })
-
-    }
+        .then(response => response.json()) // ahora esperamos JSON
+        .then(data => {
+            mensaje = document.getElementById("MensajeDeError");
+            if (data.success) {
+                mensaje.style.display = "none";
+                window.location.href = "index.php";
+            } else {
+                mensaje.innerText = "Usuario o contraseña incorrectos.";
+                mensaje.style.display = "block";
+            }
+        })
+        .catch(error => {
+            const mensaje = document.getElementById("MensajeDeError");
+            mensaje.innerText = "Error de conexión.";
+            mensaje.style.display = "block";
+            console.error("Error:", error);
+        });
+    });
 </script>
 
 </body>

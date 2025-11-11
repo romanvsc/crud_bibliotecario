@@ -4,6 +4,10 @@ require_once __DIR__ . '/config/config.php';
 
 $titulo_pagina = 'Dashboard';
 include 'includes/header.php';
+
+require 'token_confirmar.php';
+require 'obtenerBaseDeDatos.php';
+redirigir(comprobarToken(ObtenerDB()));
 ?>
 
 <div class="dashboard-container">

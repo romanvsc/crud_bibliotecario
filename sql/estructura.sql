@@ -72,3 +72,11 @@ CREATE TABLE IF NOT EXISTS usuarios_sistema (
     INDEX idx_email (email),
     INDEX idx_rol (rol)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- Tabla de tokens de usuarios, para mantener su sesion.
+CREATE TABLE IF NOT EXISTS expiracion_cookie (
+    token CHAR(32) NOT NULL UNIQUE,
+    usuario_id INT NOT NULL,
+    expiracion DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci ;
