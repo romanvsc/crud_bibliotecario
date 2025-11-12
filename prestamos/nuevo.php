@@ -5,6 +5,7 @@
 
 // Incluir autenticación
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/check_role.php';
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../obtenerBaseDeDatos.php';
 
@@ -12,10 +13,21 @@ $titulo_pagina = 'Nuevo Préstamo';
 $error = '';
 $success = '';
 
+// Variables para usuarios comunes
+$es_usuario_comun = ($usuario_logueado['rol'] === 'usuario');
+$libro_id_preseleccionado = $_GET['libro_id'] ?? null;
+
 // Procesar formulario
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $libro_id = $_POST['libro_id'] ?? null;
-    $usuario_id = $_POST['usuario_id'] ?? null;
+    
+    // Para usuarios comunes, el usuario_id es el suyo propio
+    if ($es_usuario_comun) {
+        $usuario_id = $usuario_logueado['usuario_id'];
+    } else {
+        $usuario_id = $_POST['usuario_id'] ?? null;
+    }
+    
     $fecha_devolucion = $_POST['fecha_devolucion'] ?? '';
     $observaciones = trim($_POST['observaciones'] ?? '');
     
@@ -71,6 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $con->commit();
                     $success = 'Préstamo registrado exitosamente';
                     
+                    // Redirigir según el tipo de usuario
+                    if ($es_usuario_comun) {
+                        header("Location: mis_prestamos.php");
+                        exit;
+                    }
+                    
                     // Limpiar formulario
                     $libro_id = $usuario_id = $fecha_devolucion = $observaciones = '';
                     
@@ -107,9 +125,9 @@ include '../includes/header.php';
 
 <div class="page-container">
     <div class="page-header">
-        <h1><i class="fas fa-plus-circle"></i> Nuevo Préstamo</h1>
-        <a href="index.php" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Volver al listado
+        <h1><i class="fas fa-plus-circle"></i> <?php echo $es_usuario_comun ? 'Solicitar Préstamo' : 'Nuevo Préstamo'; ?></h1>
+        <a href="<?php echo $es_usuario_comun ? 'mis_prestamos.php' : 'index.php'; ?>" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver
         </a>
     </div>
 
@@ -130,6 +148,8 @@ include '../includes/header.php';
     <div class="form-container">
         <form method="POST" action="" class="form-modern" id="form-prestamo">
             <div class="form-grid">
+                <?php if (!$es_usuario_comun): ?>
+                <!-- Campo de usuario solo para admin/bibliotecarios -->
                 <div class="form-group">
                     <label for="usuario_id" class="form-label">
                         <i class="fas fa-user"></i> Usuario *
@@ -146,6 +166,16 @@ include '../includes/header.php';
                     </select>
                     <small class="form-help">Solo se muestran usuarios activos</small>
                 </div>
+                <?php else: ?>
+                <!-- Mostrar información del usuario para usuarios comunes -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user"></i> Solicitante
+                    </label>
+                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($usuario_logueado['nombre']); ?>" readonly>
+                    <small class="form-help">Este préstamo será registrado a tu nombre</small>
+                </div>
+                <?php endif; ?>
 
                 <div class="form-group">
                     <label for="libro_id" class="form-label">
@@ -155,7 +185,7 @@ include '../includes/header.php';
                         <option value="">Seleccionar libro...</option>
                         <?php while ($libro = $libros_disponibles->fetch_assoc()): ?>
                             <option value="<?php echo $libro['id']; ?>"
-                                    <?php echo (isset($_POST['libro_id']) && $_POST['libro_id'] == $libro['id']) ? 'selected' : ''; ?>>
+                                    <?php echo (isset($_POST['libro_id']) && $_POST['libro_id'] == $libro['id']) || ($libro_id_preseleccionado == $libro['id']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($libro['titulo']); ?> 
                                 - <?php echo htmlspecialchars($libro['autor']); ?>
                                 (<?php echo htmlspecialchars($libro['isbn']); ?>)
@@ -196,18 +226,24 @@ include '../includes/header.php';
                 <div>
                     <strong>Información importante:</strong>
                     <ul>
-                        <li>El libro quedará marcado como "prestado" automáticamente</li>
-                        <li>El usuario recibirá una notificación (si está configurado)</li>
-                        <li>Se recomienda un período de préstamo de 15 días</li>
+                        <?php if ($es_usuario_comun): ?>
+                            <li>Una vez solicitado el préstamo, deberás recoger el libro en la biblioteca</li>
+                            <li>Se recomienda devolver el libro en la fecha indicada</li>
+                            <li>Puedes ver el estado de tus préstamos en "Mis Préstamos"</li>
+                        <?php else: ?>
+                            <li>El libro quedará marcado como "prestado" automáticamente</li>
+                            <li>El usuario recibirá una notificación (si está configurado)</li>
+                            <li>Se recomienda un período de préstamo de 15 días</li>
+                        <?php endif; ?>
                     </ul>
                 </div>
             </div>
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Registrar Préstamo
+                    <i class="fas fa-save"></i> <?php echo $es_usuario_comun ? 'Solicitar Préstamo' : 'Registrar Préstamo'; ?>
                 </button>
-                <a href="index.php" class="btn btn-secondary">
+                <a href="<?php echo $es_usuario_comun ? 'mis_prestamos.php' : 'index.php'; ?>" class="btn btn-secondary">
                     <i class="fas fa-times"></i> Cancelar
                 </a>
             </div>

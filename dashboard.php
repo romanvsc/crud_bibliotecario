@@ -6,6 +6,14 @@
 
 // Incluir autenticación
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/check_role.php';
+
+// Redirigir a usuarios comunes a su página de préstamos
+if (esUsuarioComun()) {
+    header("Location: prestamos/mis_prestamos.php");
+    exit;
+}
+
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/obtenerBaseDeDatos.php';
 

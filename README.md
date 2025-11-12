@@ -137,3 +137,8 @@ biblioteca/
 3. Opcionalmente, importar `sql/datos_prueba.sql` para datos de ejemplo
 4. Configurar las credenciales de base de datos en `config/database.php`
 5. Acceder al sistema mediante el navegador web
+
+### Roles Disponibles:
+1. **Usuario** - Solo puede solicitar préstamos y ver su historial
+2. **Bibliotecario** - Puede gestionar libros, usuarios y préstamos
+3. **Administrador** - Acceso total al sistema

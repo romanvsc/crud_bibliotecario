@@ -32,18 +32,29 @@ redirigir(comprobarToken(ObtenerDB()));
                 <span>Sistema Biblioteca</span>
             </div>
             <ul class="navbar-menu">
-                <li><a href="<?php echo BASE_URL; ?>/index.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'index.php' && dirname($_SERVER['PHP_SELF']) == dirname(BASE_URL) ? 'active' : ''; ?>">
-                    <i class="fas fa-home"></i> Inicio
-                </a></li>
-                <li><a href="<?php echo BASE_URL; ?>/libros/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/libros/') !== false ? 'active' : ''; ?>">
-                    <i class="fas fa-book-open"></i> Libros
-                </a></li>
-                <li><a href="<?php echo BASE_URL; ?>/usuarios/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/usuarios/') !== false ? 'active' : ''; ?>">
-                    <i class="fas fa-users"></i> Usuarios
-                </a></li>
-                <li><a href="<?php echo BASE_URL; ?>/prestamos/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/prestamos/') !== false ? 'active' : ''; ?>">
-                    <i class="fas fa-exchange-alt"></i> Préstamos
-                </a></li>
+                <?php if (isset($usuario_logueado['rol']) && $usuario_logueado['rol'] === 'usuario'): ?>
+                    <!-- Menú para usuarios comunes -->
+                    <li><a href="<?php echo BASE_URL; ?>/prestamos/mis_prestamos.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/prestamos/mis_prestamos.php') !== false ? 'active' : ''; ?>">
+                        <i class="fas fa-home"></i> Mis Préstamos
+                    </a></li>
+                    <li><a href="<?php echo BASE_URL; ?>/libros/ver.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/libros/ver.php') !== false ? 'active' : ''; ?>">
+                        <i class="fas fa-book-open"></i> Ver Libros
+                    </a></li>
+                <?php else: ?>
+                    <!-- Menú para admin y bibliotecarios -->
+                    <li><a href="<?php echo BASE_URL; ?>/dashboard.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'dashboard.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a></li>
+                    <li><a href="<?php echo BASE_URL; ?>/libros/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/libros/') !== false ? 'active' : ''; ?>">
+                        <i class="fas fa-book-open"></i> Libros
+                    </a></li>
+                    <li><a href="<?php echo BASE_URL; ?>/usuarios/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/usuarios/') !== false ? 'active' : ''; ?>">
+                        <i class="fas fa-users"></i> Usuarios
+                    </a></li>
+                    <li><a href="<?php echo BASE_URL; ?>/prestamos/index.php" class="<?php echo strpos($_SERVER['PHP_SELF'], '/prestamos/') !== false ? 'active' : ''; ?>">
+                        <i class="fas fa-exchange-alt"></i> Préstamos
+                    </a></li>
+                <?php endif; ?>
             </ul>
             <div class="navbar-user">
                 <i class="fas fa-user-circle"></i>
