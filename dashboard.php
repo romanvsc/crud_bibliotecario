@@ -133,15 +133,35 @@ include 'includes/header.php';
                 <?php if ($prestamos_recientes && $prestamos_recientes->num_rows > 0): ?>
                     <?php while ($prestamo = $prestamos_recientes->fetch_assoc()): ?>
                         <?php
-                        $tiempo = time() - strtotime($prestamo['created_at']);
-                        if ($tiempo < 60) {
-                            $tiempo_texto = "Hace " . $tiempo . " segundos";
-                        } elseif ($tiempo < 3600) {
-                            $tiempo_texto = "Hace " . floor($tiempo / 60) . " minutos";
-                        } elseif ($tiempo < 86400) {
-                            $tiempo_texto = "Hace " . floor($tiempo / 3600) . " horas";
+
+                        date_default_timezone_set('America/Argentina/Buenos_Aires');
+
+                        $DateTime_HoraOriginal = new DateTime($prestamo['created_at']);
+                        $DateTime_Servidor = new DateTime();
+                        $diferencia = $DateTime_HoraOriginal->diff($DateTime_Servidor);
+
+                        $mes = 'meses';
+                        $dia = 'días';
+                        $hora = 'horas';
+                        $minuto = 'minutos';
+                        $segundo = 'segundos';
+
+                        if ($diferencia->y > 0 || $diferencia->m > 0) {
+                            if($diferencia->m == 1) { $mes = 'mes'; }
+                            if($diferencia->d == 1) { $dia = 'día'; }
+                            $tiempo_texto = $diferencia->format("%m $mes y %d $dia");
+                        } elseif ($diferencia->d > 0) {
+                            if($diferencia->d == 1) { $dia = 'día'; }
+                            $tiempo_texto = $diferencia->format("%a $dia");
+                        } elseif ($diferencia->h > 0) {
+                            if($diferencia->h == 1) { $hora = 'hora'; }
+                            $tiempo_texto = $diferencia->format("%h $hora y %i $minuto");
+                        } elseif ($diferencia->i > 0) {
+                            if($diferencia->i == 1) { $minuto = 'minuto'; }
+                            $tiempo_texto = $diferencia->format("%i $minuto");
                         } else {
-                            $tiempo_texto = "Hace " . floor($tiempo / 86400) . " días";
+                            if($diferencia->s == 1) { $segundo = 'segundo'; }
+                            $tiempo_texto = $diferencia->format("%s $segundo");
                         }
                         
                         $icon_class = 'activity-primary';
