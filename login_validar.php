@@ -5,6 +5,8 @@ session_start();
 // indicamos que la salida será JSON
 header("Content-Type: application/json; charset=UTF-8");
 
+require_once __DIR__ . '/obtenerBaseDeDatos.php';
+
 $con = ObtenerDB();
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -50,18 +52,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 // ------- Funciones ---------
 
-function ObtenerDB(){
-    $servidor = "localhost";
-    $usuario = "root";
-    $clave = "";
-    $DB = "biblioteca";
-    $con = new mysqli($servidor, $usuario, $clave, $DB);
-    if ($con->connect_error) {
-        die(json_encode(["success" => false, "error" => "Error de conexión BD"]));
-    }
-    return $con;
-}
-
 function ComprobarUsuario($con, $usuario, $contraseña){
     $stmt = $con->prepare("SELECT password FROM usuarios_sistema WHERE usuario = ? LIMIT 1");
     $stmt->bind_param("s", $usuario);
@@ -69,6 +59,7 @@ function ComprobarUsuario($con, $usuario, $contraseña){
     $stmt->store_result();
 
     if ($stmt->num_rows > 0) {
+        $contraseña_hasheada = "";
         $stmt->bind_result($contraseña_hasheada);
         $stmt->fetch();
 
@@ -78,7 +69,7 @@ function ComprobarUsuario($con, $usuario, $contraseña){
             $retorno = false;
         }
     } else {
-        $retorno = False;
+        $retorno = false;
     }
 
     $stmt->close();
@@ -87,17 +78,20 @@ function ComprobarUsuario($con, $usuario, $contraseña){
 
 function ObtenerUsuarioId($con, $usuario){
 
-    $stmt = $con -> prepare("SELECT id FROM usuarios_sistema WHERE usuario = ? LIMIT 1");
-    $stmt -> bind_param("s", $usuario);
-    $stmt -> execute();
-    $stmt -> store_result();
+    $stmt = $con->prepare("SELECT id FROM usuarios_sistema WHERE usuario = ? LIMIT 1");
+    $stmt->bind_param("s", $usuario);
+    $stmt->execute();
+    $stmt->store_result();
+    if($stmt->num_rows > 0) {
+        $usuario_id = null;
+        $stmt->bind_result($usuario_id);
+        $stmt->fetch();
+        $stmt->fetch();
+    } else { 
+        $usuario_id = null; 
+    }
 
-    if($stmt -> num_rows > 0) {
-        $stmt -> bind_result($usuario_id);
-        $stmt -> fetch();
-    } else { $usuario_id = null; }
-
-    $stmt -> close();
+    $stmt->close();
 
     return $usuario_id;
 
@@ -124,7 +118,9 @@ function cargarCookie_ALaBaseDeDatos($con, $token, $usuario_id, $expiracion_DB) 
         $insert->close();
     }
 
+    if ($resultado) {
+        $resultado->close();
+    }
     $check->close();
 }
-
 ?>
