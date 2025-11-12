@@ -66,11 +66,14 @@ CREATE TABLE IF NOT EXISTS usuarios_sistema (
     password VARCHAR(255) NOT NULL,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
-    rol ENUM('admin', 'bibliotecario') DEFAULT 'bibliotecario',
+    rol ENUM('admin', 'bibliotecario', 'usuario') DEFAULT 'usuario',
+    usuario_id INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
     INDEX idx_usuario (usuario),
     INDEX idx_email (email),
-    INDEX idx_rol (rol)
+    INDEX idx_rol (rol),
+    INDEX idx_usuario_id (usuario_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

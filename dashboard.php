@@ -6,6 +6,14 @@
 
 // Incluir autenticación
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/check_role.php';
+
+// Redirigir a usuarios comunes a su página de préstamos
+if (esUsuarioComun()) {
+    header("Location: prestamos/mis_prestamos.php");
+    exit;
+}
+
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/obtenerBaseDeDatos.php';
 
@@ -171,19 +179,19 @@ include 'includes/header.php';
                 <h2><i class="fas fa-link"></i> Accesos Rápidos</h2>
             </div>
             <div class="quick-actions">
-                <a href="<?php echo BASE_URL; ?>/prestamos/nuevo.php" class="action-card card-primary">
+                <a href="<?php echo BASE_URL; ?>/prestamos/nuevo.php" class="action-card action-primary">
                     <i class="fas fa-plus-circle"></i>
                     <span>Nuevo Préstamo</span>
                 </a>
-                <a href="<?php echo BASE_URL; ?>/libros/crear.php" class="action-card card-success">
+                <a href="<?php echo BASE_URL; ?>/libros/crear.php" class="action-card action-success">
                     <i class="fas fa-book-medical"></i>
                     <span>Agregar Libro</span>
                 </a>
-                <a href="<?php echo BASE_URL; ?>/usuarios/crear.php" class="action-card card-info">
+                <a href="<?php echo BASE_URL; ?>/usuarios/crear.php" class="action-card action-info">
                     <i class="fas fa-user-plus"></i>
                     <span>Nuevo Usuario</span>
                 </a>
-                <a href="<?php echo BASE_URL; ?>/prestamos/historial.php" class="action-card card-warning">
+                <a href="<?php echo BASE_URL; ?>/prestamos/historial.php" class="action-card action-warning">
                     <i class="fas fa-history"></i>
                     <span>Ver Historial</span>
                 </a>

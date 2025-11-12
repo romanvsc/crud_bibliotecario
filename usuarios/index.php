@@ -1,5 +1,11 @@
 <?php
-// Incluir configuración
+// Incluir autenticación y verificación de roles
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/check_role.php';
+
+// Solo admin y bibliotecarios pueden gestionar usuarios
+verificarRol(['admin', 'bibliotecario']);
+
 require_once __DIR__ . '/../config/config.php';
 
 $titulo_pagina = 'Gestión de Usuarios';

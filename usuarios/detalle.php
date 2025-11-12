@@ -1,5 +1,10 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/check_role.php';
+
+// Solo admin y bibliotecarios pueden ver detalles de usuarios
+verificarRol(['admin', 'bibliotecario']);
+
 require_once __DIR__ . '/../obtenerBaseDeDatos.php';
 
 $id = $_GET['id'] ?? null;

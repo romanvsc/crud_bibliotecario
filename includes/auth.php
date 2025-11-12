@@ -25,7 +25,7 @@ $usuario_logueado = null;
 $token = $_COOKIE['sesion_usuario'] ?? null;
 
 if ($token) {
-    $query = $con->prepare("SELECT us.id, us.usuario, us.nombre, us.email, us.rol 
+    $query = $con->prepare("SELECT us.id, us.usuario, us.nombre, us.email, us.rol, us.usuario_id 
                             FROM expiracion_cookie ec 
                             INNER JOIN usuarios_sistema us ON ec.usuario_id = us.id 
                             WHERE ec.token = ? AND ec.expiracion > NOW()");

@@ -1,15 +1,23 @@
 <?php
+/**
+ * Vista de libros para usuarios comunes
+ * Solo visualización y opción de solicitar préstamo
+ */
+
 // Incluir autenticación
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/check_role.php';
 
-// Solo admin y bibliotecarios pueden acceder
-verificarRol(['admin', 'bibliotecario']);
+// Solo usuarios comunes pueden acceder a esta vista
+if ($usuario_logueado['rol'] !== 'usuario') {
+    header("Location: ../libros/index.php");
+    exit;
+}
 
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../obtenerBaseDeDatos.php';
 
-$titulo_pagina = 'Gestión de Libros';
+$titulo_pagina = 'Catálogo de Libros';
 
 // Obtener libros de la base de datos
 $con = ObtenerDB();
@@ -45,7 +53,7 @@ if (!empty($estado)) {
     $types .= "s";
 }
 
-$query .= " ORDER BY created_at DESC";
+$query .= " ORDER BY titulo ASC";
 
 $stmt = $con->prepare($query);
 if (!empty($params)) {
@@ -63,53 +71,32 @@ include '../includes/header.php';
 
 <div class="page-container">
     <div class="page-header">
-        <h1><i class="fas fa-book-open"></i> Gestión de Libros</h1>
-        <a href="crear.php" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Nuevo Libro
-        </a>
+        <div>
+            <h1><i class="fas fa-book-open"></i> Catálogo de Libros</h1>
+            <p class="subtitle">Explora nuestra colección de libros disponibles</p>
+        </div>
     </div>
-
-    <?php if (isset($_SESSION['error_eliminar'])): ?>
-        <div class="alert alert-error">
-            <i class="fas fa-exclamation-circle"></i>
-            <span><?php echo htmlspecialchars($_SESSION['error_eliminar']); ?></span>
-        </div>
-        <?php unset($_SESSION['error_eliminar']); ?>
-    <?php endif; ?>
-
-    <?php if (isset($_SESSION['success_eliminar'])): ?>
-        <div class="alert alert-success">
-            <i class="fas fa-check-circle"></i>
-            <span><?php echo htmlspecialchars($_SESSION['success_eliminar']); ?></span>
-        </div>
-        <?php unset($_SESSION['success_eliminar']); ?>
-    <?php endif; ?>
 
     <div class="filters-section">
         <form method="GET" action="" class="filters-form">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" name="busqueda" id="buscar-libro" 
+                <input type="text" name="busqueda" 
                        placeholder="Buscar por título, autor o ISBN..." 
                        value="<?php echo htmlspecialchars($busqueda); ?>">
             </div>
             <div class="filter-buttons">
-                <select name="categoria" id="filtro-categoria" class="form-select">
+                <select name="categoria" class="form-select">
                     <option value="">Todas las categorías</option>
-                    <option value = "Ciencia ficción" <?php echo $categoria === 'Ciencia ficción' ? 'selected' : ''; ?>>Ciencia ficción</option>
-                    <option value = "Clásico" <?php echo $categoria === 'Clásico' ? 'selected' : ''; ?>>Clásico</option>
-                    <option value = "Drama" <?php echo $categoria === 'Drama' ? 'selected' : ''; ?>>Drama</option>
-                    <option value = "Drama psicológico" <?php echo $categoria === 'Drama psicológico' ? 'selected' : ''; ?>>Drama psicológico</option>
-                    <option value = "Experimental" <?php echo $categoria === 'Experimental' ? 'selected' : ''; ?>>Experimental</option>
-                    <option value = "Fantasía" <?php echo $categoria === 'Fantasía' ? 'selected' : ''; ?>>Fantasía</option>
-                    <option value = "Ficción" <?php echo $categoria === 'Ficción' ? 'selected' : ''; ?>>Ficción</option>
-                    <option value = "Ficción psicológica" <?php echo $categoria === 'Ficción psicológica' ? 'selected' : ''; ?>>Ficción psicológica</option>
-                    <option value = "Misterio" <?php echo $categoria === 'Misterio' ? 'selected' : ''; ?>>Misterio</option>
-                    <option value = "Realismo mágico" <?php echo $categoria === 'Realismo mágico' ? 'selected' : ''; ?>>Realismo mágico</option>
-                    <option value = "Tomance" <?php echo $categoria === 'Tomance' ? 'selected' : ''; ?>>Tomance</option>
-                    <option value = "Thriller" <?php echo $categoria === 'Thriller' ? 'selected' : ''; ?>>Thriller</option>
+                    <option value="ficcion" <?php echo $categoria === 'ficcion' ? 'selected' : ''; ?>>Ficción</option>
+                    <option value="no-ficcion" <?php echo $categoria === 'no-ficcion' ? 'selected' : ''; ?>>No Ficción</option>
+                    <option value="ciencia" <?php echo $categoria === 'ciencia' ? 'selected' : ''; ?>>Ciencia</option>
+                    <option value="historia" <?php echo $categoria === 'historia' ? 'selected' : ''; ?>>Historia</option>
+                    <option value="tecnologia" <?php echo $categoria === 'tecnologia' ? 'selected' : ''; ?>>Tecnología</option>
+                    <option value="literatura" <?php echo $categoria === 'literatura' ? 'selected' : ''; ?>>Literatura</option>
+                    <option value="arte" <?php echo $categoria === 'arte' ? 'selected' : ''; ?>>Arte</option>
                 </select>
-                <select name="estado" id="filtro-disponibilidad" class="form-select">
+                <select name="estado" class="form-select">
                     <option value="">Todos</option>
                     <option value="disponible" <?php echo $estado === 'disponible' ? 'selected' : ''; ?>>Disponibles</option>
                     <option value="prestado" <?php echo $estado === 'prestado' ? 'selected' : ''; ?>>Prestados</option>
@@ -118,7 +105,7 @@ include '../includes/header.php';
                     <i class="fas fa-filter"></i> Filtrar
                 </button>
                 <?php if (!empty($busqueda) || !empty($categoria) || !empty($estado)): ?>
-                    <a href="index.php" class="btn btn-secondary">
+                    <a href="ver.php" class="btn btn-secondary">
                         <i class="fas fa-times"></i> Limpiar
                     </a>
                 <?php endif; ?>
@@ -130,25 +117,28 @@ include '../includes/header.php';
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>ISBN</th>
                     <th>Título</th>
                     <th>Autor</th>
                     <th>Categoría</th>
+                    <th>Año</th>
                     <th>Estado</th>
-                    <th>Disponibles</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody id="tabla-libros">
+            <tbody>
                 <?php if (count($libros) > 0): ?>
                     <?php foreach ($libros as $libro): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($libro['isbn']); ?></td>
                         <td>
-                            <strong><?php echo htmlspecialchars($libro['titulo']); ?></strong>
-                            <?php if (!empty($libro['anio'])): ?>
-                                <br><small class="text-muted">(<?php echo $libro['anio']; ?>)</small>
-                            <?php endif; ?>
+                            <div class="book-cell">
+                                <i class="fas fa-book"></i>
+                                <div>
+                                    <strong><?php echo htmlspecialchars($libro['titulo']); ?></strong>
+                                    <?php if (!empty($libro['isbn'])): ?>
+                                        <br><small class="text-muted">ISBN: <?php echo htmlspecialchars($libro['isbn']); ?></small>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </td>
                         <td><?php echo htmlspecialchars($libro['autor']); ?></td>
                         <td>
@@ -158,6 +148,7 @@ include '../includes/header.php';
                                 <span class="badge badge-secondary">Sin categoría</span>
                             <?php endif; ?>
                         </td>
+                        <td><?php echo !empty($libro['anio']) ? htmlspecialchars($libro['anio']) : 'N/A'; ?></td>
                         <td>
                             <?php if ($libro['estado'] === 'disponible'): ?>
                                 <span class="badge badge-success">
@@ -169,32 +160,26 @@ include '../includes/header.php';
                                 </span>
                             <?php endif; ?>
                         </td>
-                        <td><?php echo htmlspecialchars($libro['editorial'] ?? 'N/A'); ?></td>
                         <td class="table-actions">
-                            <a href="editar.php?id=<?php echo $libro['id']; ?>" 
-                               class="btn-icon btn-icon-primary" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="eliminar.php?id=<?php echo $libro['id']; ?>" 
-                               class="btn-icon btn-icon-danger" title="Eliminar" 
-                               onclick="return confirm('¿Está seguro de eliminar este libro?\n\nTítulo: <?php echo addslashes(htmlspecialchars($libro['titulo'])); ?>')">
-                                <i class="fas fa-trash"></i>
-                            </a>
+                            <?php if ($libro['estado'] === 'disponible'): ?>
+                                <a href="../prestamos/nuevo.php?libro_id=<?php echo $libro['id']; ?>" 
+                                   class="btn btn-sm btn-primary" title="Solicitar préstamo">
+                                    <i class="fas fa-hand-holding"></i> Solicitar
+                                </a>
+                            <?php else: ?>
+                                <span class="text-muted">No disponible</span>
+                            <?php endif; ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="7" class="empty-state">
+                        <td colspan="6" class="empty-state">
                             <i class="fas fa-book-open"></i>
                             <p>No se encontraron libros</p>
                             <?php if (!empty($busqueda) || !empty($categoria) || !empty($estado)): ?>
-                                <a href="index.php" class="btn btn-secondary">
+                                <a href="ver.php" class="btn btn-secondary">
                                     <i class="fas fa-times"></i> Limpiar filtros
-                                </a>
-                            <?php else: ?>
-                                <a href="crear.php" class="btn btn-primary">
-                                    <i class="fas fa-plus"></i> Agregar primer libro
                                 </a>
                             <?php endif; ?>
                         </td>
@@ -206,7 +191,7 @@ include '../includes/header.php';
 
     <div class="pagination">
         <button class="btn btn-secondary" disabled><i class="fas fa-chevron-left"></i> Anterior</button>
-        <span class="pagination-info">Página 1 de 1</span>
+        <span class="pagination-info">Mostrando <?php echo count($libros); ?> libro(s)</span>
         <button class="btn btn-secondary" disabled>Siguiente <i class="fas fa-chevron-right"></i></button>
     </div>
 </div>

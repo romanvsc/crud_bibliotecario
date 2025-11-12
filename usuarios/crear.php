@@ -1,5 +1,10 @@
 <?php
 require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/check_role.php';
+
+// Solo admin y bibliotecarios pueden crear usuarios
+verificarRol(['admin', 'bibliotecario']);
+
 require_once __DIR__ . '/../obtenerBaseDeDatos.php';
 
 // Procesar formulario
@@ -13,8 +18,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $direccion = trim($_POST['direccion']);
     $tipo_usuario = $_POST['tipo_usuario'];
     $estado = $_POST['estado'];
-    $password = trim($_POST['password'] ?? '');
-    $es_usuario_sistema = isset($_POST['es_usuario_sistema']) && $_POST['es_usuario_sistema'] === '1';
+    $usuario_login = trim($_POST['usuario_login']);
+    $password = trim($_POST['password']);
+    $rol = $_POST['rol'] ?? 'usuario'; // Por defecto es usuario común
     
     // Validaciones
     $errores = [];
@@ -41,14 +47,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errores[] = "El teléfono debe tener 9 dígitos";
     }
     
-    // Validar contraseña si es usuario del sistema
-    if ($es_usuario_sistema) {
-        if (empty($password)) {
-            $errores[] = "La contraseña es obligatoria para usuarios con acceso al sistema";
-        } elseif (strlen($password) < 6) {
-            $errores[] = "La contraseña debe tener al menos 6 caracteres";
-        }
-    } elseif (!empty($password) && strlen($password) < 6) {
+    if (empty($usuario_login)) {
+        $errores[] = "El nombre de usuario es obligatorio";
+    } elseif (strlen($usuario_login) < 4) {
+        $errores[] = "El nombre de usuario debe tener al menos 4 caracteres";
+    } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $usuario_login)) {
+        $errores[] = "El nombre de usuario solo puede contener letras, números y guiones bajos";
+    }
+    
+    if (empty($password)) {
+        $errores[] = "La contraseña es obligatoria";
+    } elseif (strlen($password) < 6) {
         $errores[] = "La contraseña debe tener al menos 6 caracteres";
     }
     
@@ -63,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
     
-    // Verificar email único
+    // Verificar email único en usuarios
     if (empty($errores)) {
         $stmt = $con->prepare("SELECT id FROM usuarios WHERE email = ?");
         $stmt->bind_param("s", $email);
@@ -74,32 +83,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
     
+    // Verificar usuario_login único en usuarios_sistema
     if (empty($errores)) {
-        $stmt = $con->prepare("INSERT INTO usuarios (dni, nombre_completo, email, telefono, direccion, tipo_usuario, estado, fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
-        $stmt->bind_param("sssssss", $dni, $nombre_completo, $email, $telefono, $direccion, $tipo_usuario, $estado);
+        $stmt = $con->prepare("SELECT id FROM usuarios_sistema WHERE usuario = ?");
+        $stmt->bind_param("s", $usuario_login);
+        $stmt->execute();
+        if ($stmt->get_result()->num_rows > 0) {
+            $errores[] = "Ya existe un usuario del sistema con ese nombre de usuario";
+        }
+        $stmt->close();
+    }
+    
+    // Verificar email único en usuarios_sistema
+    if (empty($errores)) {
+        $stmt = $con->prepare("SELECT id FROM usuarios_sistema WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        if ($stmt->get_result()->num_rows > 0) {
+            $errores[] = "Ya existe un usuario del sistema con ese correo electrónico";
+        }
+        $stmt->close();
+    }
+    
+    if (empty($errores)) {
+        // Iniciar transacción para asegurar que ambas inserciones se completen
+        $con->begin_transaction();
         
-        if ($stmt->execute()) {
+        try {
+            // 1. Insertar en tabla usuarios (lectores/socios)
+            $stmt = $con->prepare("INSERT INTO usuarios (dni, nombre_completo, email, telefono, direccion, tipo_usuario, estado, fecha_registro) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+            $stmt->bind_param("sssssss", $dni, $nombre_completo, $email, $telefono, $direccion, $tipo_usuario, $estado);
+            $stmt->execute();
             $usuario_id = $con->insert_id;
+            $stmt->close();
             
-            // Si hay contraseña y es usuario del sistema, crear también en usuarios_sistema
-            if (!empty($password) && $es_usuario_sistema) {
-                $password_hash = password_hash($password, PASSWORD_DEFAULT);
-                $usuario_login = strtolower(str_replace(' ', '', explode(' ', $nombre_completo)[0])) . substr($dni, 0, 4);
-                
-                $stmt_sistema = $con->prepare("INSERT INTO usuarios_sistema (usuario, password, nombre, email, rol) VALUES (?, ?, ?, ?, 'bibliotecario')");
-                $stmt_sistema->bind_param("ssss", $usuario_login, $password_hash, $nombre_completo, $email);
-                $stmt_sistema->execute();
-                $stmt_sistema->close();
-            }
+            // 2. Insertar en tabla usuarios_sistema (acceso al sistema)
+            $password_hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmt_sistema = $con->prepare("INSERT INTO usuarios_sistema (usuario, password, nombre, email, rol, usuario_id) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt_sistema->bind_param("sssssi", $usuario_login, $password_hash, $nombre_completo, $email, $rol, $usuario_id);
+            $stmt_sistema->execute();
+            $stmt_sistema->close();
             
-            $_SESSION['mensaje'] = "Usuario creado exitosamente" . ($es_usuario_sistema ? " con acceso al sistema" : "");
+            // Confirmar transacción
+            $con->commit();
+            
+            $_SESSION['mensaje'] = "Usuario creado exitosamente en ambos sistemas";
             $_SESSION['tipo_mensaje'] = "success";
             header("Location: index.php");
             exit;
-        } else {
-            $errores[] = "Error al crear el usuario: " . $con->error;
+            
+        } catch (Exception $e) {
+            // Revertir cambios si hay error
+            $con->rollback();
+            $errores[] = "Error al crear el usuario: " . $e->getMessage();
         }
-        $stmt->close();
     }
     
     $con->close();
@@ -194,24 +231,41 @@ include '../includes/header.php';
             </div>
 
             <div class="form-section">
-                <h2><i class="fas fa-lock"></i> Acceso al Sistema</h2>
+                <h2><i class="fas fa-lock"></i> Acceso al Sistema *</h2>
                 <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="password">Contraseña</label>
-                        <input type="password" id="password" name="password" minlength="6"
-                               placeholder="Mínimo 6 caracteres"
-                               value="<?= htmlspecialchars($_POST['password'] ?? '') ?>">
-                        <small>Establece una contraseña para este usuario</small>
+                    <div class="form-group">
+                        <label for="usuario_login">Nombre de Usuario *</label>
+                        <input type="text" id="usuario_login" name="usuario_login" required 
+                               pattern="[a-zA-Z0-9_]{4,}" 
+                               placeholder="usuario123"
+                               value="<?= htmlspecialchars($_POST['usuario_login'] ?? '') ?>">
+                        <small>Mínimo 4 caracteres (letras, números y guiones bajos)</small>
                     </div>
 
-                    <div class="form-group full-width">
-                        <label>
-                            <input type="checkbox" id="es_usuario_sistema" name="es_usuario_sistema" value="1" 
-                                   <?= isset($_POST['es_usuario_sistema']) ? 'checked' : '' ?>>
-                            Dar acceso al sistema de gestión (panel de administración)
-                        </label>
-                        <small>Marque esta opción si el usuario necesita iniciar sesión en el sistema</small>
+                    <div class="form-group">
+                        <label for="password">Contraseña *</label>
+                        <input type="password" id="password" name="password" required minlength="6"
+                               placeholder="Mínimo 6 caracteres">
+                        <small>Esta contraseña será usada para iniciar sesión</small>
                     </div>
+
+                    <div class="form-group">
+                        <label for="rol">Rol en el Sistema *</label>
+                        <select id="rol" name="rol" required>
+                            <option value="usuario" <?= ($_POST['rol'] ?? 'usuario') === 'usuario' ? 'selected' : '' ?>>Usuario (Solo préstamos)</option>
+                            <option value="bibliotecario" <?= ($_POST['rol'] ?? '') === 'bibliotecario' ? 'selected' : '' ?>>Bibliotecario (Gestión completa)</option>
+                            <option value="admin" <?= ($_POST['rol'] ?? '') === 'admin' ? 'selected' : '' ?>>Administrador (Acceso total)</option>
+                        </select>
+                        <small>Define los permisos del usuario en el sistema</small>
+                    </div>
+                </div>
+                <div class="info-box" style="margin-top: 15px; padding: 12px; background: #e3f2fd; border-left: 4px solid #2196f3; border-radius: 4px;">
+                    <strong>ℹ️ Roles del sistema:</strong>
+                    <ul style="margin: 8px 0 0 20px; font-size: 0.9em;">
+                        <li><strong>Usuario:</strong> Solo puede solicitar préstamos y ver su historial</li>
+                        <li><strong>Bibliotecario:</strong> Puede gestionar libros, usuarios y préstamos</li>
+                        <li><strong>Administrador:</strong> Acceso completo al sistema</li>
+                    </ul>
                 </div>
             </div>
 
@@ -226,20 +280,5 @@ include '../includes/header.php';
         </form>
     </div>
 </div>
-
-<script>
-// Resaltar el checkbox cuando se escriba una contraseña
-document.getElementById('password').addEventListener('input', function() {
-    const checkbox = document.getElementById('es_usuario_sistema');
-    if (this.value.length > 0 && !checkbox.checked) {
-        checkbox.parentElement.style.backgroundColor = '#fff3cd';
-        checkbox.parentElement.style.padding = '10px';
-        checkbox.parentElement.style.borderRadius = '5px';
-    } else {
-        checkbox.parentElement.style.backgroundColor = '';
-        checkbox.parentElement.style.padding = '';
-    }
-});
-</script>
 
 <?php include '../includes/footer.php'; ?>
