@@ -96,13 +96,18 @@ include '../includes/header.php';
             <div class="filter-buttons">
                 <select name="categoria" id="filtro-categoria" class="form-select">
                     <option value="">Todas las categorías</option>
-                    <option value="ficcion" <?php echo $categoria === 'ficcion' ? 'selected' : ''; ?>>Ficción</option>
-                    <option value="no-ficcion" <?php echo $categoria === 'no-ficcion' ? 'selected' : ''; ?>>No Ficción</option>
-                    <option value="ciencia" <?php echo $categoria === 'ciencia' ? 'selected' : ''; ?>>Ciencia</option>
-                    <option value="historia" <?php echo $categoria === 'historia' ? 'selected' : ''; ?>>Historia</option>
-                    <option value="tecnologia" <?php echo $categoria === 'tecnologia' ? 'selected' : ''; ?>>Tecnología</option>
-                    <option value="literatura" <?php echo $categoria === 'literatura' ? 'selected' : ''; ?>>Literatura</option>
-                    <option value="arte" <?php echo $categoria === 'arte' ? 'selected' : ''; ?>>Arte</option>
+                    <option value = "Ciencia ficción" <?php echo $categoria === 'Ciencia ficción' ? 'selected' : ''; ?>>Ciencia ficción</option>
+                    <option value = "Clásico" <?php echo $categoria === 'Clásico' ? 'selected' : ''; ?>>Clásico</option>
+                    <option value = "Drama" <?php echo $categoria === 'Drama' ? 'selected' : ''; ?>>Drama</option>
+                    <option value = "Drama psicológico" <?php echo $categoria === 'Drama psicológico' ? 'selected' : ''; ?>>Drama psicológico</option>
+                    <option value = "Experimental" <?php echo $categoria === 'Experimental' ? 'selected' : ''; ?>>Experimental</option>
+                    <option value = "Fantasía" <?php echo $categoria === 'Fantasía' ? 'selected' : ''; ?>>Fantasía</option>
+                    <option value = "Ficción" <?php echo $categoria === 'Ficción' ? 'selected' : ''; ?>>Ficción</option>
+                    <option value = "Ficción psicológica" <?php echo $categoria === 'Ficción psicológica' ? 'selected' : ''; ?>>Ficción psicológica</option>
+                    <option value = "Misterio" <?php echo $categoria === 'Misterio' ? 'selected' : ''; ?>>Misterio</option>
+                    <option value = "Realismo mágico" <?php echo $categoria === 'Realismo mágico' ? 'selected' : ''; ?>>Realismo mágico</option>
+                    <option value = "Tomance" <?php echo $categoria === 'Tomance' ? 'selected' : ''; ?>>Tomance</option>
+                    <option value = "Thriller" <?php echo $categoria === 'Thriller' ? 'selected' : ''; ?>>Thriller</option>
                 </select>
                 <select name="estado" id="filtro-disponibilidad" class="form-select">
                     <option value="">Todos</option>
