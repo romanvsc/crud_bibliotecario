@@ -4,10 +4,6 @@ require_once __DIR__ . '/config/config.php';
 
 $titulo_pagina = 'Dashboard';
 include 'includes/header.php';
-
-require 'token_confirmar.php';
-require 'obtenerBaseDeDatos.php';
-redirigir(comprobarToken(ObtenerDB()));
 ?>
 
 <div class="dashboard-container">
@@ -70,7 +66,7 @@ redirigir(comprobarToken(ObtenerDB()));
                     </div>
                     <div class="activity-content">
                         <p><strong>Nuevo préstamo registrado</strong></p>
-                        <small>Hace 5 minutos</small>
+                        <small id = "prestamo-registrado-recientemente">Hace 5 minutos</small>
                     </div>
                 </div>
                 <div class="activity-item">
@@ -79,7 +75,7 @@ redirigir(comprobarToken(ObtenerDB()));
                     </div>
                     <div class="activity-content">
                         <p><strong>Nuevo libro agregado</strong></p>
-                        <small>Hace 1 hora</small>
+                        <small id = "libro-agregado-recientemente">Hace 1 hora</small>
                     </div>
                 </div>
                 <div class="activity-item">
@@ -88,7 +84,7 @@ redirigir(comprobarToken(ObtenerDB()));
                     </div>
                     <div class="activity-content">
                         <p><strong>Libro devuelto</strong></p>
-                        <small>Hace 2 horas</small>
+                        <small id = "libro-devuelto-recientemente">Hace 2 horas</small>
                     </div>
                 </div>
             </div>

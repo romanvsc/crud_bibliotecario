@@ -24,19 +24,35 @@ function initTooltips() {
 
 // Cargar estadísticas del dashboard (simulado sin backend)
 function loadDashboardStats() {
-    // Simular datos de ejemplo
-    const stats = {
-        totalLibros: 150,
-        totalUsuarios: 45,
-        prestamosActivos: 23,
-        prestamosVencidos: 5
-    };
+
+    fetch('obtenerDatosEstadisticos.php', {
+        method: 'GET',
+    })
+    .then(response => response.json())
+    .then(data => {
+        const stats = {
+            totalLibros: data.totalLibros,
+            totalUsuarios: data.totalUsuarios,
+            prestamosActivos: data.prestamosActivos,
+            prestamosVencidos: data.prestamosVencidos,
+            nuevoPrestamo: data.nuevoPrestamo,
+            nuevoLibro: data.nuevoLibro,
+            libroDevuelto: data.libroDevuelto
+        };
+        // Animar los contadores
+        animateCounter('total-libros', stats.totalLibros);
+        animateCounter('total-usuarios', stats.totalUsuarios);
+        animateCounter('prestamos-activos', stats.prestamosActivos);
+        animateCounter('prestamos-vencidos', stats.prestamosVencidos);
+        // Cambiar Actividad reciente
+        document.getElementById("prestamo-registrado-recientemente").innerText = "Hace" + stats.nuevoPrestamo;
+        document.getElementById("libro-agregado-recientemente").innerText = "Hace" + stats.nuevoLibro;
+        document.getElementById("libro-devuelto-recientemente").innerText = "Hace" + stats.libroDevuelto;
+        
+    })
+    .catch(error => console.error('Error', error));
     
-    // Animar los contadores
-    animateCounter('total-libros', stats.totalLibros);
-    animateCounter('total-usuarios', stats.totalUsuarios);
-    animateCounter('prestamos-activos', stats.prestamosActivos);
-    animateCounter('prestamos-vencidos', stats.prestamosVencidos);
+
 }
 
 // Animar contador numérico

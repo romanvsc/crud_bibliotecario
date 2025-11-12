@@ -7,7 +7,13 @@ if (!defined('BASE_URL')) {
 // Determinar la ruta relativa para los assets
 $depth = substr_count($_SERVER['SCRIPT_NAME'], '/') - substr_count(BASE_URL, '/') - 1;
 $relative_path = str_repeat('../', $depth);
+
+require __DIR__ . '/../token_confirmar.php';
+require __DIR__ . '/../obtenerBaseDeDatos.php';
+redirigir(comprobarToken(ObtenerDB()));
+
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
