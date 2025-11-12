@@ -122,7 +122,7 @@ include '../includes/header.php';
                     <?php foreach ($prestamos as $prestamo): ?>
                         <?php
                         // Determinar el estado real del préstamo
-                        $es_vencido = $prestamo['estado'] === 'activo' && $prestamo['dias_retraso'] > 0;
+                        $es_vencido = $prestamo['estado'] === 'vencido' && $prestamo['dias_retraso'] > 0;
                         $estado_mostrar = $prestamo['estado'];
                         $row_class = '';
                         
