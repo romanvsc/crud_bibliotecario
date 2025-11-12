@@ -48,64 +48,92 @@ include '../includes/header.php';
                 </tr>
             </thead>
             <tbody id="tabla-usuarios">
-                <!-- Datos de ejemplo -->
-                <tr>
-                    <td>12345678A</td>
-                    <td>Juan Pérez García</td>
-                    <td>juan.perez@email.com</td>
-                    <td>612 345 678</td>
-                    <td><span class="badge badge-primary">Estudiante</span></td>
-                    <td><span class="badge badge-success">Activo</span></td>
-                    <td class="table-actions">
-                        <a href="detalle.php?id=1" class="btn-icon btn-icon-info" title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="editar.php?id=1" class="btn-icon btn-icon-primary" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="eliminar.php?id=1" class="btn-icon btn-icon-danger" title="Eliminar" onclick="return confirm('¿Está seguro de eliminar este usuario?')">
-                            <i class="fas fa-trash"></i>
-                        </a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>87654321B</td>
-                    <td>María López Fernández</td>
-                    <td>maria.lopez@email.com</td>
-                    <td>623 456 789</td>
-                    <td><span class="badge badge-success">Profesor</span></td>
-                    <td><span class="badge badge-success">Activo</span></td>
-                    <td class="table-actions">
-                        <a href="detalle.php?id=2" class="btn-icon btn-icon-info" title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="editar.php?id=2" class="btn-icon btn-icon-primary" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="eliminar.php?id=2" class="btn-icon btn-icon-danger" title="Eliminar" onclick="return confirm('¿Está seguro de eliminar este usuario?')">
-                            <i class="fas fa-trash"></i>
-                        </a>
-                    </td>
-                </tr>
-                <tr>
-                    <td>11223344C</td>
-                    <td>Carlos Martínez Ruiz</td>
-                    <td>carlos.martinez@email.com</td>
-                    <td>634 567 890</td>
-                    <td><span class="badge badge-warning">Externo</span></td>
-                    <td><span class="badge badge-danger">Inactivo</span></td>
-                    <td class="table-actions">
-                        <a href="detalle.php?id=3" class="btn-icon btn-icon-info" title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="editar.php?id=3" class="btn-icon btn-icon-primary" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <a href="eliminar.php?id=3" class="btn-icon btn-icon-danger" title="Eliminar" onclick="return confirm('¿Está seguro de eliminar este usuario?')">
-                            <i class="fas fa-trash"></i>
-                        </a>
-                    </td>
-                </tr>
+                <?php
+                require_once __DIR__ . '/../obtenerBaseDeDatos.php';
+                $con = ObtenerDB();
+                
+                // Obtener parámetros de filtro
+                $busqueda = $_GET['busqueda'] ?? '';
+                $tipo = $_GET['tipo'] ?? '';
+                $estado = $_GET['estado'] ?? '';
+                
+                // Construir consulta con filtros
+                $query = "SELECT * FROM usuarios WHERE 1=1";
+                $params = [];
+                $types = '';
+                
+                if (!empty($busqueda)) {
+                    $query .= " AND (nombre_completo LIKE ? OR dni LIKE ? OR email LIKE ?)";
+                    $busqueda_param = "%$busqueda%";
+                    $params[] = $busqueda_param;
+                    $params[] = $busqueda_param;
+                    $params[] = $busqueda_param;
+                    $types .= 'sss';
+                }
+                
+                if (!empty($tipo)) {
+                    $query .= " AND tipo_usuario = ?";
+                    $params[] = $tipo;
+                    $types .= 's';
+                }
+                
+                if (!empty($estado)) {
+                    $query .= " AND estado = ?";
+                    $params[] = $estado;
+                    $types .= 's';
+                }
+                
+                $query .= " ORDER BY nombre_completo ASC";
+                
+                $stmt = $con->prepare($query);
+                if (!empty($params)) {
+                    $stmt->bind_param($types, ...$params);
+                }
+                $stmt->execute();
+                $result = $stmt->get_result();
+                
+                if ($result->num_rows > 0) {
+                    while ($usuario = $result->fetch_assoc()) {
+                        // Badge para tipo
+                        $badge_tipo_class = match($usuario['tipo_usuario']) {
+                            'estudiante' => 'badge-primary',
+                            'profesor' => 'badge-success',
+                            'externo' => 'badge-warning',
+                            default => 'badge-secondary'
+                        };
+                        
+                        // Badge para estado
+                        $badge_estado_class = $usuario['estado'] === 'activo' ? 'badge-success' : 'badge-danger';
+                        $estado_texto = ucfirst($usuario['estado']);
+                        ?>
+                        <tr>
+                            <td><?= htmlspecialchars($usuario['dni']) ?></td>
+                            <td><?= htmlspecialchars($usuario['nombre_completo']) ?></td>
+                            <td><?= htmlspecialchars($usuario['email']) ?></td>
+                            <td><?= htmlspecialchars($usuario['telefono']) ?></td>
+                            <td><span class="badge <?= $badge_tipo_class ?>"><?= ucfirst($usuario['tipo_usuario']) ?></span></td>
+                            <td><span class="badge <?= $badge_estado_class ?>"><?= $estado_texto ?></span></td>
+                            <td class="table-actions">
+                                <a href="detalle.php?id=<?= $usuario['id'] ?>" class="btn-icon btn-icon-info" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="editar.php?id=<?= $usuario['id'] ?>" class="btn-icon btn-icon-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="eliminar.php?id=<?= $usuario['id'] ?>" class="btn-icon btn-icon-danger" title="Eliminar" onclick="return confirm('¿Está seguro de eliminar este usuario?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        <?php
+                    }
+                } else {
+                    echo '<tr><td colspan="7" style="text-align: center;">No se encontraron usuarios</td></tr>';
+                }
+                
+                $stmt->close();
+                $con->close();
+                ?>
             </tbody>
         </table>
     </div>

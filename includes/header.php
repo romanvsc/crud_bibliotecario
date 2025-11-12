@@ -47,7 +47,18 @@ redirigir(comprobarToken(ObtenerDB()));
             </ul>
             <div class="navbar-user">
                 <i class="fas fa-user-circle"></i>
-                <span>Bibliotecario</span>
+                <span><?php echo isset($usuario_logueado) ? htmlspecialchars($usuario_logueado['nombre']) : 'Usuario'; ?></span>
+                <div class="user-dropdown">
+                    <?php if (isset($usuario_logueado)): ?>
+                        <div class="user-info">
+                            <p><strong><?php echo htmlspecialchars($usuario_logueado['nombre']); ?></strong></p>
+                            <p class="user-role"><?php echo ucfirst($usuario_logueado['rol']); ?></p>
+                        </div>
+                    <?php endif; ?>
+                    <a href="<?php echo BASE_URL; ?>/logout.php" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                    </a>
+                </div>
             </div>
         </div>
     </nav>
