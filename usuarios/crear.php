@@ -13,6 +13,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $direccion = trim($_POST['direccion']);
     $tipo_usuario = $_POST['tipo_usuario'];
     $estado = $_POST['estado'];
+    $password = trim($_POST['password'] ?? '');
+    $es_usuario_sistema = isset($_POST['es_usuario_sistema']) && $_POST['es_usuario_sistema'] === '1';
     
     // Validaciones
     $errores = [];
@@ -37,6 +39,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errores[] = "El teléfono es obligatorio";
     } elseif (!preg_match('/^[0-9]{9}$/', $telefono)) {
         $errores[] = "El teléfono debe tener 9 dígitos";
+    }
+    
+    // Validar contraseña si es usuario del sistema
+    if ($es_usuario_sistema) {
+        if (empty($password)) {
+            $errores[] = "La contraseña es obligatoria para usuarios del sistema";
+        } elseif (strlen($password) < 6) {
+            $errores[] = "La contraseña debe tener al menos 6 caracteres";
+        }
     }
     
     // Verificar DNI único
@@ -66,7 +77,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param("sssssss", $dni, $nombre_completo, $email, $telefono, $direccion, $tipo_usuario, $estado);
         
         if ($stmt->execute()) {
-            $_SESSION['mensaje'] = "Usuario creado exitosamente";
+            $usuario_id = $con->insert_id;
+            
+            // Si es usuario del sistema, crear también en usuarios_sistema
+            if ($es_usuario_sistema && !empty($password)) {
+                $password_hash = password_hash($password, PASSWORD_DEFAULT);
+                $usuario_login = strtolower(str_replace(' ', '', explode(' ', $nombre_completo)[0])) . substr($dni, 0, 4);
+                
+                $stmt_sistema = $con->prepare("INSERT INTO usuarios_sistema (usuario, password, nombre, email, rol) VALUES (?, ?, ?, ?, 'bibliotecario')");
+                $stmt_sistema->bind_param("ssss", $usuario_login, $password_hash, $nombre_completo, $email);
+                $stmt_sistema->execute();
+                $stmt_sistema->close();
+            }
+            
+            $_SESSION['mensaje'] = "Usuario creado exitosamente" . ($es_usuario_sistema ? " con acceso al sistema" : "");
             $_SESSION['tipo_mensaje'] = "success";
             header("Location: index.php");
             exit;
@@ -167,6 +191,27 @@ include '../includes/header.php';
                 </div>
             </div>
 
+            <div class="form-section">
+                <h2><i class="fas fa-lock"></i> Acceso al Sistema (Opcional)</h2>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>
+                            <input type="checkbox" id="es_usuario_sistema" name="es_usuario_sistema" value="1" 
+                                   <?= isset($_POST['es_usuario_sistema']) ? 'checked' : '' ?>>
+                            Crear acceso al sistema de gestión
+                        </label>
+                        <small>Marque esta opción si el usuario necesita acceder al panel de administración</small>
+                    </div>
+
+                    <div class="form-group full-width" id="password-container" style="display: none;">
+                        <label for="password">Contraseña *</label>
+                        <input type="password" id="password" name="password" minlength="6"
+                               placeholder="Mínimo 6 caracteres">
+                        <small>Esta contraseña será usada para acceder al sistema</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Crear Usuario
@@ -178,5 +223,28 @@ include '../includes/header.php';
         </form>
     </div>
 </div>
+
+<script>
+// Mostrar/ocultar campo de contraseña según checkbox
+document.getElementById('es_usuario_sistema').addEventListener('change', function() {
+    const passwordContainer = document.getElementById('password-container');
+    const passwordInput = document.getElementById('password');
+    
+    if (this.checked) {
+        passwordContainer.style.display = 'block';
+        passwordInput.required = true;
+    } else {
+        passwordContainer.style.display = 'none';
+        passwordInput.required = false;
+        passwordInput.value = '';
+    }
+});
+
+// Inicializar estado en caso de error de validación
+if (document.getElementById('es_usuario_sistema').checked) {
+    document.getElementById('password-container').style.display = 'block';
+    document.getElementById('password').required = true;
+}
+</script>
 
 <?php include '../includes/footer.php'; ?>
