@@ -44,10 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validar contraseña si es usuario del sistema
     if ($es_usuario_sistema) {
         if (empty($password)) {
-            $errores[] = "La contraseña es obligatoria para usuarios del sistema";
+            $errores[] = "La contraseña es obligatoria para usuarios con acceso al sistema";
         } elseif (strlen($password) < 6) {
             $errores[] = "La contraseña debe tener al menos 6 caracteres";
         }
+    } elseif (!empty($password) && strlen($password) < 6) {
+        $errores[] = "La contraseña debe tener al menos 6 caracteres";
     }
     
     // Verificar DNI único
@@ -79,8 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->execute()) {
             $usuario_id = $con->insert_id;
             
-            // Si es usuario del sistema, crear también en usuarios_sistema
-            if ($es_usuario_sistema && !empty($password)) {
+            // Si hay contraseña y es usuario del sistema, crear también en usuarios_sistema
+            if (!empty($password) && $es_usuario_sistema) {
                 $password_hash = password_hash($password, PASSWORD_DEFAULT);
                 $usuario_login = strtolower(str_replace(' ', '', explode(' ', $nombre_completo)[0])) . substr($dni, 0, 4);
                 
@@ -192,22 +194,23 @@ include '../includes/header.php';
             </div>
 
             <div class="form-section">
-                <h2><i class="fas fa-lock"></i> Acceso al Sistema (Opcional)</h2>
+                <h2><i class="fas fa-lock"></i> Acceso al Sistema</h2>
                 <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" name="password" minlength="6"
+                               placeholder="Mínimo 6 caracteres"
+                               value="<?= htmlspecialchars($_POST['password'] ?? '') ?>">
+                        <small>Establece una contraseña para este usuario</small>
+                    </div>
+
                     <div class="form-group full-width">
                         <label>
                             <input type="checkbox" id="es_usuario_sistema" name="es_usuario_sistema" value="1" 
                                    <?= isset($_POST['es_usuario_sistema']) ? 'checked' : '' ?>>
-                            Crear acceso al sistema de gestión
+                            Dar acceso al sistema de gestión (panel de administración)
                         </label>
-                        <small>Marque esta opción si el usuario necesita acceder al panel de administración</small>
-                    </div>
-
-                    <div class="form-group full-width" id="password-container" style="display: none;">
-                        <label for="password">Contraseña *</label>
-                        <input type="password" id="password" name="password" minlength="6"
-                               placeholder="Mínimo 6 caracteres">
-                        <small>Esta contraseña será usada para acceder al sistema</small>
+                        <small>Marque esta opción si el usuario necesita iniciar sesión en el sistema</small>
                     </div>
                 </div>
             </div>
@@ -225,26 +228,18 @@ include '../includes/header.php';
 </div>
 
 <script>
-// Mostrar/ocultar campo de contraseña según checkbox
-document.getElementById('es_usuario_sistema').addEventListener('change', function() {
-    const passwordContainer = document.getElementById('password-container');
-    const passwordInput = document.getElementById('password');
-    
-    if (this.checked) {
-        passwordContainer.style.display = 'block';
-        passwordInput.required = true;
+// Resaltar el checkbox cuando se escriba una contraseña
+document.getElementById('password').addEventListener('input', function() {
+    const checkbox = document.getElementById('es_usuario_sistema');
+    if (this.value.length > 0 && !checkbox.checked) {
+        checkbox.parentElement.style.backgroundColor = '#fff3cd';
+        checkbox.parentElement.style.padding = '10px';
+        checkbox.parentElement.style.borderRadius = '5px';
     } else {
-        passwordContainer.style.display = 'none';
-        passwordInput.required = false;
-        passwordInput.value = '';
+        checkbox.parentElement.style.backgroundColor = '';
+        checkbox.parentElement.style.padding = '';
     }
 });
-
-// Inicializar estado en caso de error de validación
-if (document.getElementById('es_usuario_sistema').checked) {
-    document.getElementById('password-container').style.display = 'block';
-    document.getElementById('password').required = true;
-}
 </script>
 
 <?php include '../includes/footer.php'; ?>
