@@ -1,6 +1,6 @@
 <?php 
-require 'token_confirmar.php';
-require 'obtenerBaseDeDatos.php';
+require_once 'token_confirmar.php';
+require_once 'obtenerBaseDeDatos.php';
 redirigir(comprobarToken(ObtenerDB()));
 ?>
 

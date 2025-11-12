@@ -1,4 +1,7 @@
 <?php
+// Evitar cualquier salida antes del JSON
+ob_start();
+
 // Reanuda la Sesion PHP.
 session_start();
 
@@ -6,6 +9,9 @@ session_start();
 header("Content-Type: application/json; charset=UTF-8");
 
 require_once __DIR__ . '/obtenerBaseDeDatos.php';
+
+// Limpiar cualquier salida previa
+ob_end_clean();
 
 $con = ObtenerDB();
 
