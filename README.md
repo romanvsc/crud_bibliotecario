@@ -142,3 +142,14 @@ biblioteca/
 1. **Usuario** - Solo puede solicitar préstamos y ver su historial
 2. **Bibliotecario** - Puede gestionar libros, usuarios y préstamos
 3. **Administrador** - Acceso total al sistema
+
+### Usuarios de Prueba:
+1. Para Admin:
+- Usuario: admin
+- Contraseña: password
+2. Para Biblotecario:
+- Usuario: roman    
+- Contraseña: Namor19Legov03
+3. Para Usuario:
+- Usuario: pablo
+- Contraseña: pablito

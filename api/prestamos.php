@@ -70,17 +70,17 @@ function obtenerPrestamos($db) {
         $libro_id = isset($_GET['libro_id']) ? intval($_GET['libro_id']) : null;
         
         $query = "SELECT p.*, 
-                  l.titulo as libro_titulo, 
-                  l.autor as libro_autor, 
-                  l.isbn as libro_isbn,
-                  u.nombre_completo as usuario_nombre,
-                  u.email as usuario_email,
-                  u.dni as usuario_dni,
-                  DATEDIFF(CURDATE(), p.fecha_devolucion) as dias_retraso
-                  FROM prestamos p
-                  INNER JOIN libros l ON p.libro_id = l.id
-                  INNER JOIN usuarios u ON p.usuario_id = u.id
-                  WHERE 1=1";
+                    l.titulo as libro_titulo, 
+                    l.autor as libro_autor, 
+                    l.isbn as libro_isbn,
+                    u.nombre_completo as usuario_nombre,
+                    u.email as usuario_email,
+                    u.dni as usuario_dni,
+                    DATEDIFF(CURDATE(), p.fecha_devolucion) as dias_retraso
+                    FROM prestamos p
+                    INNER JOIN libros l ON p.libro_id = l.id
+                    INNER JOIN usuarios u ON p.usuario_id = u.id
+                    WHERE 1=1";
         $params = [];
         
         if (!empty($estado)) {
@@ -134,19 +134,19 @@ function obtenerPrestamos($db) {
 function obtenerPrestamo($db, $id) {
     try {
         $query = "SELECT p.*, 
-                  l.titulo as libro_titulo, 
-                  l.autor as libro_autor, 
-                  l.isbn as libro_isbn,
-                  l.editorial as libro_editorial,
-                  u.nombre_completo as usuario_nombre,
-                  u.email as usuario_email,
-                  u.telefono as usuario_telefono,
-                  u.dni as usuario_dni,
-                  DATEDIFF(CURDATE(), p.fecha_devolucion) as dias_retraso
-                  FROM prestamos p
-                  INNER JOIN libros l ON p.libro_id = l.id
-                  INNER JOIN usuarios u ON p.usuario_id = u.id
-                  WHERE p.id = ?";
+                    l.titulo as libro_titulo, 
+                    l.autor as libro_autor, 
+                    l.isbn as libro_isbn,
+                    l.editorial as libro_editorial,
+                    u.nombre_completo as usuario_nombre,
+                    u.email as usuario_email,
+                    u.telefono as usuario_telefono,
+                    u.dni as usuario_dni,
+                    DATEDIFF(CURDATE(), p.fecha_devolucion) as dias_retraso
+                    FROM prestamos p
+                    INNER JOIN libros l ON p.libro_id = l.id
+                    INNER JOIN usuarios u ON p.usuario_id = u.id
+                    WHERE p.id = ?";
         
         $stmt = $db->prepare($query);
         $stmt->execute([$id]);
@@ -249,7 +249,7 @@ function crearPrestamo($db) {
         try {
             // Crear el préstamo
             $query = "INSERT INTO prestamos (libro_id, usuario_id, fecha_prestamo, fecha_devolucion, observaciones, estado) 
-                      VALUES (?, ?, CURDATE(), ?, ?, 'activo')";
+                        VALUES (?, ?, CURDATE(), ?, ?, 'activo')";
             
             $stmt = $db->prepare($query);
             $stmt->execute([
@@ -329,9 +329,9 @@ function devolverPrestamo($db, $id) {
         try {
             // Actualizar el préstamo
             $query = "UPDATE prestamos SET 
-                      estado = 'devuelto', 
-                      fecha_dev_real = CURDATE()
-                      WHERE id = ?";
+                        estado = 'devuelto', 
+                        fecha_dev_real = CURDATE()
+                        WHERE id = ?";
             
             $stmt = $db->prepare($query);
             $stmt->execute([$id]);
@@ -389,9 +389,9 @@ function actualizarPrestamo($db, $id) {
         }
         
         $query = "UPDATE prestamos SET 
-                  fecha_devolucion = ?, 
-                  observaciones = ?
-                  WHERE id = ?";
+                    fecha_devolucion = ?, 
+                    observaciones = ?
+                    WHERE id = ?";
         
         $stmt = $db->prepare($query);
         $stmt->execute([
