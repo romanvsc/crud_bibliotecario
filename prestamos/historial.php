@@ -118,7 +118,7 @@ include '../includes/header.php';
             <tbody>
                 <?php foreach ($prestamos as $prestamo): ?>
                     <?php
-                    $es_vencido = $prestamo['estado'] === 'vencido' && $prestamo['dias_retraso'] > 0;
+                    $es_vencido = $prestamo['estado'] === 'activo' && $prestamo['dias_retraso'] > 0;
                     $row_class = $es_vencido ? 'row-warning' : '';
                     ?>
                     <tr class="<?php echo $row_class; ?>">

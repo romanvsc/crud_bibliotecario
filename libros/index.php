@@ -106,7 +106,7 @@ include '../includes/header.php';
                     <option value = "Ficción psicológica" <?php echo $categoria === 'Ficción psicológica' ? 'selected' : ''; ?>>Ficción psicológica</option>
                     <option value = "Misterio" <?php echo $categoria === 'Misterio' ? 'selected' : ''; ?>>Misterio</option>
                     <option value = "Realismo mágico" <?php echo $categoria === 'Realismo mágico' ? 'selected' : ''; ?>>Realismo mágico</option>
-                    <option value = "Tomance" <?php echo $categoria === 'Tomance' ? 'selected' : ''; ?>>Tomance</option>
+                    <option value = "Romance" <?php echo $categoria === 'Romance' ? 'selected' : ''; ?>>Romance</option>
                     <option value = "Thriller" <?php echo $categoria === 'Thriller' ? 'selected' : ''; ?>>Thriller</option>
                 </select>
                 <select name="estado" id="filtro-disponibilidad" class="form-select">

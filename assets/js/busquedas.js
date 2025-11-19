@@ -1,4 +1,3 @@
-// Búsquedas con AJAX (sin backend - simulado)
 
 // Búsqueda de libros
 document.addEventListener('DOMContentLoaded', function() {
@@ -166,12 +165,15 @@ function setupFiltros() {
     // Filtro de disponibilidad - Auto submit en libros
     const filtroDisponibilidad = document.getElementById('filtro-disponibilidad');
     if (filtroDisponibilidad) {
+        let timeoutId;
         filtroDisponibilidad.addEventListener('change', function(e) {
-            // Submit del formulario para que aplique los filtros
-            const form = e.target.closest('form');
-            if (form) {
-                form.submit();
-            }
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                const form = e.target.closest('form');
+                if (form) {
+                    form.submit();
+                }
+            }, 300); // Espera 300ms después del último cambio
         });
     }
     
