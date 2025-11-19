@@ -149,21 +149,29 @@ function buscarPrestamos(termino) {
         });
 }
 
-// Configurar filtros
+// Configurar filtros con actualización automática
 function setupFiltros() {
-    // Filtro de categoría
+    // Filtro de categoría - Auto submit en libros
     const filtroCategoria = document.getElementById('filtro-categoria');
     if (filtroCategoria) {
         filtroCategoria.addEventListener('change', function(e) {
-            aplicarFiltros();
+            // Submit del formulario para que aplique los filtros
+            const form = e.target.closest('form');
+            if (form) {
+                form.submit();
+            }
         });
     }
     
-    // Filtro de disponibilidad
+    // Filtro de disponibilidad - Auto submit en libros
     const filtroDisponibilidad = document.getElementById('filtro-disponibilidad');
     if (filtroDisponibilidad) {
         filtroDisponibilidad.addEventListener('change', function(e) {
-            aplicarFiltros();
+            // Submit del formulario para que aplique los filtros
+            const form = e.target.closest('form');
+            if (form) {
+                form.submit();
+            }
         });
     }
     
@@ -171,7 +179,10 @@ function setupFiltros() {
     const filtroTipo = document.getElementById('filtro-tipo');
     if (filtroTipo) {
         filtroTipo.addEventListener('change', function(e) {
-            aplicarFiltros();
+            const form = e.target.closest('form');
+            if (form) {
+                form.submit();
+            }
         });
     }
     
@@ -179,7 +190,10 @@ function setupFiltros() {
     const filtroEstado = document.getElementById('filtro-estado');
     if (filtroEstado) {
         filtroEstado.addEventListener('change', function(e) {
-            aplicarFiltros();
+            const form = e.target.closest('form');
+            if (form) {
+                form.submit();
+            }
         });
     }
     
@@ -187,7 +201,10 @@ function setupFiltros() {
     const filtroEstadoPrestamo = document.getElementById('filtro-estado-prestamo');
     if (filtroEstadoPrestamo) {
         filtroEstadoPrestamo.addEventListener('change', function(e) {
-            aplicarFiltros();
+            const form = e.target.closest('form');
+            if (form) {
+                form.submit();
+            }
         });
     }
 }
